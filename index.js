@@ -126,6 +126,11 @@ const typeDefs = `
       published: Int!
       genres: [String!]!
     ): Book
+    
+    editAuthor(
+      name: String!
+      setBornTo: Int!
+      ): Author  
   }
 `;
 
@@ -159,23 +164,30 @@ const resolvers = {
   },
   Mutation: {
     addBook: (root, args) => {
-      let book = null;
-
-      bookExists = books.find((book) => book.title === args.title);
-
-      if (!bookExists) {
-        book = { ...args };
+      if (!books.some((book) => book.title === args.title)) {
+        const book = { ...args };
         books = books.concat(book);
+
+        if (!authors.some((author) => author.name === args.author)) {
+          const author = { name: args.author };
+          authors = authors.concat(author);
+        }
+
+        return book;
       }
 
-      authorExists = authors.find((author) => author.name === args.author);
+      return null;
+    },
 
-      if (!authorExists) {
-        const author = { name: args.author };
-        authors = authors.concat(author);
+    editAuthor: (root, args) => {
+      const author = authors.find((author) => author.name === args.name);
+
+      if (!author) {
+        return null;
       }
 
-      return book;
+      author.born = args.setBornTo;
+      return author;
     },
   },
 };
