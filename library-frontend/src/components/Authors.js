@@ -32,8 +32,6 @@ const Authors = (props) => {
     return null;
   }
 
-  console.log(name);
-
   return (
     <div>
       <h2>authors</h2>

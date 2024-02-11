@@ -185,6 +185,13 @@ const resolvers = {
     bookCount: async () => await Book.collection.countDocuments(),
     authorCount: async () => await Author.collection.countDocuments(),
     allBooks: async (root, args) => {
+      if (args.genre) {
+        const books = await Book.find({ genres: args.genre }).populate(
+          "author"
+        );
+        return books;
+      }
+
       const books = await Book.find({}).populate("author");
       return books;
     },
@@ -284,8 +291,6 @@ const resolvers = {
         favoriteGenre: args.favoriteGenre,
       });
 
-      console.log("heippa", user);
-
       try {
         await user.save();
       } catch (error) {
@@ -303,7 +308,6 @@ const resolvers = {
 
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username });
-      console.log(user);
 
       if (!user || args.password !== "secret") {
         throw new GraphQLError("wrong credentials", {
@@ -318,8 +322,6 @@ const resolvers = {
         id: user._id,
       };
 
-      console.log(userForToken);
-
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) };
     },
   },
@@ -333,8 +335,6 @@ const server = new ApolloServer({
 startStandaloneServer(server, {
   listen: { port: 4000 },
   context: async ({ req, res }) => {
-    console.log(req);
-
     const auth = req ? req.headers.authorization : null;
     if (auth && auth.startsWith("Bearer ")) {
       const decodedToken = jwt.verify(
